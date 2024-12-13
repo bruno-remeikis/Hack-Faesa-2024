@@ -79,8 +79,7 @@ body {
 
 
 
-
-
+/* CUSTOM */
 
 .form {
   @apply flex flex-col gap-2;
@@ -92,4 +91,17 @@ body {
   & input {
     @apply py-1 px-2 border rounded;
   }
+}
+
+.center {
+  @apply w-full lg:w-[50rem];
+}
+.top {
+  @apply pt-20 pb-4;
+}
+.mid {
+
+}
+.bottom {
+  @apply pt-8;
 }

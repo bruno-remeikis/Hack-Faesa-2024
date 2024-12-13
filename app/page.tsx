@@ -2,7 +2,8 @@
 
 import { Modal, VisibilityModalProps } from "@/components/modal/Modal";
 import { PriceFalling } from "@/components/PriceFalling";
-import { Select } from "@/components/simple/Select";
+import { Select, SelectItemProps } from "@/components/simple/Select";
+import { Separator } from "@/components/simple/Separator";
 import { Stars } from "@/components/Stars";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,19 +12,52 @@ import { enterprisesMock } from "@/mocks/enterprises";
 import { servicesMock } from "@/mocks/services";
 import { Enterprise } from "@/models/Enterprise";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import { CiFilter } from "react-icons/ci";
-import { FaRegStar, FaStar, FaStarHalf, FaStarHalfAlt } from "react-icons/fa";
-import { FiArrowDown, FiArrowUp, FiStar } from "react-icons/fi";
 
 export default function Home() {
 
   const [isModalOpen, setModalOpen] = useState<boolean>(true);
 
-  return (
-    <div className="">
+  const [ufs, setUfs] = useState<SelectItemProps[]>([]);
+  const [uf, setUf] = useState<string | null>(null);
 
-      <div className="form p-4 shadow-md">
+  const [cities, setCities] = useState<SelectItemProps[]>([]);
+  const [city, setCity] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('https://brasilapi.com.br/api/ibge/uf/v1')
+      .then(res => res.json())
+      .then(json => setUfs(json
+        .map((res: any) => ({ name: res.sigla, value: res.sigla }))
+        .sort((a: any, b:any) => a.name.localeCompare(b.name))));
+  }, []);
+
+  useEffect(() => {
+    if (!uf) {
+      setCity(null);
+      return;
+    }
+
+    fetch(`https://brasilapi.com.br/api/ibge/municipios/v1/${uf}?providers=dados-abertos-br,gov,wikipedia`)
+      .then(res => res.json())
+      .then(json => setCities(json
+        .map((res: any) => ({ name: formatCityName(res.nome), value: res.codigo_ibge }))
+        .sort()));
+  }, [uf]);
+
+  function formatCityName(text: string): string {
+    return text
+      .toLowerCase()
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  return (
+    <div className="flex flex-col items-center">
+
+      <div className="form center top">
         <span className="block text-sm text-black text-opacity-50">Buscar por</span>
         <div className="row">
           <Select placeholder="Serviço" items={servicesMock} />
@@ -32,18 +66,18 @@ export default function Home() {
             <CiFilter />
           </button>
         </div>
+
         <div className="row">
-          {/* <input type="text" placeholder="UF" /> */}
-          <Select placeholder="UF" items={ufsMock} className="flex-1" />
-          <Select placeholder="Cidade" items={cidadesMock} />
-          <Select placeholder="Bairro" items={bairrosMock} />
-        </div>
-        <div className="row justify-end">
+          <Select placeholder="UF" items={ufs} setItem={setUf} className="flex-1" />
+          <Select placeholder="Cidade" items={cities} setItem={setCity} disabled={!uf} />
           <Button variant="default" className="">Buscar pelos melhores</Button>
         </div>
+        
       </div>
 
-      <div className="p-4">
+      <Separator />
+
+      <div className="center bottom">
         <span className="block mb-1 text-sm text-black text-opacity-50">resultados</span>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
           {enterprisesMock.map(e => <Result key={e.cnpj} enterprise={e} />)}

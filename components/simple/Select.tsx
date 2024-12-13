@@ -1,3 +1,4 @@
+import { Dispatch, SetStateAction } from 'react';
 import {
     Select as SelectUi,
     SelectContent,
@@ -17,13 +18,15 @@ export type SelectProps = {
     placeholder: string;
     label?: string;
     items: SelectItemProps[];
+    setItem?: Dispatch<SetStateAction<string | null>>;
+    disabled?: boolean;
     className?: string;
 }
 
-export function Select({ placeholder, label, items, className = '' }: SelectProps) {
+export function Select({ placeholder, label, items, setItem, disabled = false, className = '' }: SelectProps) {
     return (
-      <SelectUi>
-        <SelectTrigger className={className}>
+      <SelectUi onValueChange={e => setItem && setItem(e)}>
+        <SelectTrigger disabled={disabled} className={className}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
